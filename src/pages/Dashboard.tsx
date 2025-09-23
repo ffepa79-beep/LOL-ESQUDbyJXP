@@ -2,10 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, TrendingDown, Users } from "lucide-react";
 import { Player } from "@/types/Player";
-import { usePlayerManager } from "@/hooks/usePlayerManager";
+import { useSupabasePlayerManager } from "@/hooks/useSupabasePlayerManager";
 
 const Dashboard = () => {
-  const { players } = usePlayerManager();
+  const { players, loading } = useSupabasePlayerManager();
   
   // Organizar os dados
   const sortedByWinRate = [...players].sort((a, b) => b.winRate - a.winRate);
@@ -67,6 +67,17 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero">
@@ -186,8 +197,10 @@ const Dashboard = () => {
           <Card className="bg-gradient-card border-border/50 shadow-card lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center text-lol-loss">
+              <CardTitle className="text-center text-destructive mb-4">
                 <TrendingDown className="w-5 h-5 mr-2" />
-                Hall da Fama dos Feeders (Mais Derrotas)
+                🐟 HALL DA FAMA DOS BAGRES (MAIS DERROTAS)
+              </CardTitle>
               </CardTitle>
             </CardHeader>
             <CardContent>

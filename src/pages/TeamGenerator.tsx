@@ -5,28 +5,29 @@ import { Badge } from "@/components/ui/badge";
 import { Shuffle, Users, Trophy, Swords, Settings } from "lucide-react";
 import { Player, Team } from "@/types/Player";
 import { toast } from "sonner";
-import { usePlayerManager } from "@/hooks/usePlayerManager";
+import { useSupabasePlayerManager } from "@/hooks/useSupabasePlayerManager";
 import PlayerForm from "@/components/PlayerForm";
 import PlayerEditor from "@/components/PlayerEditor";
-import DevModeControls from "@/components/DevModeControls";
+import PlayerSearch from "@/components/PlayerSearch";
+import AuthDialog from "@/components/AuthDialog";
 
 const TeamGenerator = () => {
   const {
     players,
-    isDevMode,
-    setIsDevMode,
+    loading,
+    user,
+    isAuthenticated,
     addPlayer,
     updatePlayer,
     deletePlayer,
-    resetToDefault,
-    clearAllPlayers,
-    exportPlayers,
-    importPlayers,
-  } = usePlayerManager();
+    signIn,
+    signUp,
+    signOut,
+  } = useSupabasePlayerManager();
   
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
   const [generatedTeams, setGeneratedTeams] = useState<[Team, Team] | null>(null);
-  const [showDevControls, setShowDevControls] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const handlePlayerToggle = (player: Player) => {
     if (selectedPlayers.find(p => p.id === player.id)) {
@@ -178,18 +179,29 @@ const TeamGenerator = () => {
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center">
                 <Users className="w-5 h-5 mr-2 text-primary" />
-                Jogadores Selecionados ({selectedPlayers.length}/10)
+                Controle de Times
               </span>
               <div className="flex space-x-2">
-                <Button
-                  onClick={() => setShowDevControls(!showDevControls)}
-                  variant="outline"
-                  size="sm"
-                  className="border-primary text-primary hover:bg-primary/10"
-                >
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurações
-                </Button>
+                {isAuthenticated ? (
+                  <Button
+                    onClick={signOut}
+                    variant="outline"
+                    size="sm"
+                    className="border-destructive text-destructive hover:bg-destructive/10"
+                  >
+                    Sair ({user?.email})
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setShowAuthDialog(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Login Dev
+                  </Button>
+                )}
                 <Button
                   onClick={generateBalancedTeams}
                   disabled={selectedPlayers.length !== 10}
@@ -210,50 +222,25 @@ const TeamGenerator = () => {
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            {selectedPlayers.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {selectedPlayers.map((player) => (
-                  <Badge
-                    key={player.id}
-                    variant="secondary"
-                    className="px-3 py-1 cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                    onClick={() => handlePlayerToggle(player)}
-                  >
-                    {player.realName} ({player.lolName})
-                  </Badge>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">Nenhum jogador selecionado</p>
-            )}
-          </CardContent>
         </Card>
 
-        {/* Controles de Desenvolvimento */}
-        {showDevControls && (
-          <div className="mb-8">
-            <DevModeControls
-              isDevMode={isDevMode}
-              onToggleDevMode={setIsDevMode}
-              onResetToDefault={resetToDefault}
-              onClearAll={clearAllPlayers}
-              onExport={exportPlayers}
-              onImport={importPlayers}
-              playerCount={players.length}
-            />
-          </div>
-        )}
+        {/* Barra de Pesquisa e Seleção */}
+        <div className="mb-8">
+          <PlayerSearch
+            players={players}
+            selectedPlayers={selectedPlayers}
+            onPlayerToggle={handlePlayerToggle}
+            maxSelections={10}
+          />
+        </div>
 
-        {/* Formulário para Adicionar Jogador */}
-        {(isDevMode || players.length === 0) && (
-          <div className="mb-8">
-            <PlayerForm onAddPlayer={addPlayer} />
-          </div>
-        )}
+        {/* Formulário para Adicionar Jogador - Público */}
+        <div className="mb-8">
+          <PlayerForm onAddPlayer={addPlayer} />
+        </div>
 
-        {/* Editor de Jogadores (apenas dev mode) */}
-        {isDevMode && players.length > 0 && (
+        {/* Editor de Jogadores (apenas para devs autenticados) */}
+        {isAuthenticated && players.length > 0 && (
           <div className="mb-8">
             <PlayerEditor
               players={players}
@@ -280,51 +267,15 @@ const TeamGenerator = () => {
           </div>
         )}
 
-        {/* Lista de Jogadores */}
-        {players.length > 0 && (
-          <Card className="bg-gradient-card border-border/50 shadow-card">
-            <CardHeader>
-              <CardTitle className="text-foreground">
-                Todos os Jogadores ({players.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                {players.map((player) => {
-                  const isSelected = selectedPlayers.find(p => p.id === player.id);
-                  return (
-                    <div
-                      key={player.id}
-                      onClick={() => handlePlayerToggle(player)}
-                      className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                        isSelected
-                          ? "bg-primary/20 border-primary shadow-glow"
-                          : "bg-accent/30 border-border hover:bg-accent/50 hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium text-foreground">{player.realName}</h3>
-                        <Badge className={`${getRankColor(player.rank)} text-white text-xs`}>
-                          {player.rank} {player.tier}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground mb-2">
-                        {player.lolName} • {player.mainChampion}
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-primary font-medium">KDA: {player.kda}</span>
-                        <span className="text-lol-win">WR: {player.winRate}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+        {/* Mensagem quando não há jogadores ou carregando */}
+        {loading ? (
+          <Card className="bg-gradient-card border-border/50 shadow-card text-center">
+            <CardContent className="py-12">
+              <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Carregando jogadores...</p>
             </CardContent>
           </Card>
-        )}
-
-        {/* Mensagem quando não há jogadores */}
-        {players.length === 0 && (
+        ) : players.length === 0 ? (
           <Card className="bg-gradient-card border-border/50 shadow-card text-center">
             <CardContent className="py-12">
               <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -334,17 +285,17 @@ const TeamGenerator = () => {
               <p className="text-muted-foreground mb-6">
                 Adicione jogadores usando o formulário acima para começar a gerar times.
               </p>
-              <Button
-                onClick={() => setShowDevControls(true)}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary/10"
-              >
-                <Settings className="w-4 h-4 mr-2" />
-                Abrir Configurações
-              </Button>
             </CardContent>
           </Card>
-        )}
+        ) : null}
+
+        {/* Auth Dialog */}
+        <AuthDialog
+          open={showAuthDialog}
+          onOpenChange={setShowAuthDialog}
+          onSignIn={signIn}
+          onSignUp={signUp}
+        />
       </div>
     </div>
   );
