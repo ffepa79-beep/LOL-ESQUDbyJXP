@@ -70,7 +70,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_players_public: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          id: string
+          kda: number
+          lol_name: string
+          losses: number
+          main_champion: string
+          rank: string
+          tier: string
+          win_rate: number
+          wins: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

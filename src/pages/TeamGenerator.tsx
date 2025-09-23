@@ -10,6 +10,7 @@ import PlayerForm from "@/components/PlayerForm";
 import PlayerEditor from "@/components/PlayerEditor";
 import PlayerSearch from "@/components/PlayerSearch";
 import AuthDialog from "@/components/AuthDialog";
+import PrivacyNotice from "@/components/PrivacyNotice";
 
 const TeamGenerator = () => {
   const {
@@ -223,6 +224,9 @@ const TeamGenerator = () => {
             </CardTitle>
           </CardHeader>
         </Card>
+
+        {/* Privacy Notice */}
+        <PrivacyNotice isAuthenticated={isAuthenticated} />
 
         {/* Barra de Pesquisa e Seleção */}
         <div className="mb-8">

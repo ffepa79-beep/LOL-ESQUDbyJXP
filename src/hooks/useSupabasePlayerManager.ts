@@ -31,29 +31,55 @@ export const useSupabasePlayerManager = () => {
   const fetchPlayers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('players')
-        .select('*')
-        .order('created_at', { ascending: true });
+      
+      if (user) {
+        // Authenticated users can see full data including real names
+        const { data, error } = await supabase
+          .from('players')
+          .select('*')
+          .order('created_at', { ascending: true });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const formattedPlayers: Player[] = data?.map(player => ({
-        id: player.id,
-        realName: player.real_name,
-        lolName: player.lol_name,
-        mainChampion: player.main_champion,
-        rank: player.rank,
-        tier: player.tier,
-        kda: parseFloat(player.kda.toString()),
-        wins: player.wins,
-        losses: player.losses,
-        winRate: parseFloat(player.win_rate.toString()),
-        gamesPlayed: player.wins + player.losses,
-        lp: 0 // Default value, can be updated later if needed
-      })) || [];
+        const formattedPlayers: Player[] = data?.map(player => ({
+          id: player.id,
+          realName: player.real_name,
+          lolName: player.lol_name,
+          mainChampion: player.main_champion,
+          rank: player.rank,
+          tier: player.tier,
+          kda: parseFloat(player.kda.toString()),
+          wins: player.wins,
+          losses: player.losses,
+          winRate: parseFloat(player.win_rate.toString()),
+          gamesPlayed: player.wins + player.losses,
+          lp: 0
+        })) || [];
 
-      setPlayers(formattedPlayers);
+        setPlayers(formattedPlayers);
+      } else {
+        // Public users get limited data without real names
+        const { data, error } = await supabase.rpc('get_players_public');
+
+        if (error) throw error;
+
+        const formattedPlayers: Player[] = data?.map(player => ({
+          id: player.id,
+          realName: player.lol_name, // Use LoL name as display name for public
+          lolName: player.lol_name,
+          mainChampion: player.main_champion,
+          rank: player.rank,
+          tier: player.tier,
+          kda: parseFloat(player.kda.toString()),
+          wins: player.wins,
+          losses: player.losses,
+          winRate: parseFloat(player.win_rate.toString()),
+          gamesPlayed: player.wins + player.losses,
+          lp: 0
+        })) || [];
+
+        setPlayers(formattedPlayers);
+      }
     } catch (error) {
       console.error('Error fetching players:', error);
       toast.error('Erro ao carregar jogadores');
@@ -62,10 +88,10 @@ export const useSupabasePlayerManager = () => {
     }
   };
 
-  // Load players on mount
+  // Load players on mount and when auth state changes
   useEffect(() => {
     fetchPlayers();
-  }, []);
+  }, [user]); // Re-fetch when user auth state changes
 
   // Real-time subscription
   useEffect(() => {
