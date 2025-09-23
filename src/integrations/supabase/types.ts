@@ -16,48 +16,87 @@ export type Database = {
     Tables: {
       players: {
         Row: {
+          account_id: string | null
+          auto_update_enabled: boolean | null
           created_at: string
           created_by: string | null
+          current_season_stats: Json | null
+          division: string | null
           id: string
           kda: number
+          last_updated: string | null
+          league_points: number | null
           lol_name: string
           losses: number
           main_champion: string
+          match_history: Json | null
+          profile_icon_id: number | null
+          puuid: string | null
           rank: string
           real_name: string
+          region: string | null
+          summoner_id: string | null
+          summoner_level: number | null
           tier: string
+          tier_roman: string | null
           updated_at: string
           updated_by: string | null
           win_rate: number
           wins: number
         }
         Insert: {
+          account_id?: string | null
+          auto_update_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
+          current_season_stats?: Json | null
+          division?: string | null
           id?: string
           kda?: number
+          last_updated?: string | null
+          league_points?: number | null
           lol_name: string
           losses?: number
           main_champion: string
+          match_history?: Json | null
+          profile_icon_id?: number | null
+          puuid?: string | null
           rank: string
           real_name: string
+          region?: string | null
+          summoner_id?: string | null
+          summoner_level?: number | null
           tier: string
+          tier_roman?: string | null
           updated_at?: string
           updated_by?: string | null
           win_rate?: number
           wins?: number
         }
         Update: {
+          account_id?: string | null
+          auto_update_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
+          current_season_stats?: Json | null
+          division?: string | null
           id?: string
           kda?: number
+          last_updated?: string | null
+          league_points?: number | null
           lol_name?: string
           losses?: number
           main_champion?: string
+          match_history?: Json | null
+          profile_icon_id?: number | null
+          puuid?: string | null
           rank?: string
           real_name?: string
+          region?: string | null
+          summoner_id?: string | null
+          summoner_level?: number | null
           tier?: string
+          tier_roman?: string | null
           updated_at?: string
           updated_by?: string | null
           win_rate?: number
