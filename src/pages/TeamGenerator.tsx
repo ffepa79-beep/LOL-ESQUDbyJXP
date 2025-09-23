@@ -2,14 +2,31 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Shuffle, Users, Trophy, Swords } from "lucide-react";
-import { allPlayers } from "@/data/mockPlayers";
+import { Shuffle, Users, Trophy, Swords, Settings } from "lucide-react";
 import { Player, Team } from "@/types/Player";
 import { toast } from "sonner";
+import { usePlayerManager } from "@/hooks/usePlayerManager";
+import PlayerForm from "@/components/PlayerForm";
+import PlayerEditor from "@/components/PlayerEditor";
+import DevModeControls from "@/components/DevModeControls";
 
 const TeamGenerator = () => {
+  const {
+    players,
+    isDevMode,
+    setIsDevMode,
+    addPlayer,
+    updatePlayer,
+    deletePlayer,
+    resetToDefault,
+    clearAllPlayers,
+    exportPlayers,
+    importPlayers,
+  } = usePlayerManager();
+  
   const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
   const [generatedTeams, setGeneratedTeams] = useState<[Team, Team] | null>(null);
+  const [showDevControls, setShowDevControls] = useState(false);
 
   const handlePlayerToggle = (player: Player) => {
     if (selectedPlayers.find(p => p.id === player.id)) {
@@ -90,16 +107,16 @@ const TeamGenerator = () => {
 
   const getRankColor = (rank: string) => {
     switch (rank.toLowerCase()) {
-      case 'iron': return 'bg-gray-600';
-      case 'bronze': return 'bg-amber-600';
-      case 'silver': return 'bg-gray-400';
-      case 'gold': return 'bg-yellow-400';
-      case 'platinum': return 'bg-cyan-400';
-      case 'diamond': return 'bg-blue-400';
-      case 'master': return 'bg-purple-500';
-      case 'grandmaster': return 'bg-red-500';
-      case 'challenger': return 'bg-gradient-gold';
-      default: return 'bg-gray-500';
+      case "iron": return "bg-gray-600";
+      case "bronze": return "bg-amber-600";
+      case "silver": return "bg-gray-400";
+      case "gold": return "bg-yellow-400";
+      case "platinum": return "bg-cyan-400";
+      case "diamond": return "bg-blue-400";
+      case "master": return "bg-purple-500";
+      case "grandmaster": return "bg-red-500";
+      case "challenger": return "bg-gradient-gold";
+      default: return "bg-gray-500";
     }
   };
 
@@ -148,7 +165,10 @@ const TeamGenerator = () => {
             Gerador de Times 5v5
           </h1>
           <p className="text-muted-foreground text-lg">
-            Selecione 10 jogadores para gerar times balanceados
+            {players.length === 0 
+              ? "Adicione jogadores para começar a gerar times" 
+              : `Selecione 10 jogadores para gerar times balanceados`
+            }
           </p>
         </div>
 
@@ -161,6 +181,15 @@ const TeamGenerator = () => {
                 Jogadores Selecionados ({selectedPlayers.length}/10)
               </span>
               <div className="flex space-x-2">
+                <Button
+                  onClick={() => setShowDevControls(!showDevControls)}
+                  variant="outline"
+                  size="sm"
+                  className="border-primary text-primary hover:bg-primary/10"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configurações
+                </Button>
                 <Button
                   onClick={generateBalancedTeams}
                   disabled={selectedPlayers.length !== 10}
@@ -201,6 +230,39 @@ const TeamGenerator = () => {
           </CardContent>
         </Card>
 
+        {/* Controles de Desenvolvimento */}
+        {showDevControls && (
+          <div className="mb-8">
+            <DevModeControls
+              isDevMode={isDevMode}
+              onToggleDevMode={setIsDevMode}
+              onResetToDefault={resetToDefault}
+              onClearAll={clearAllPlayers}
+              onExport={exportPlayers}
+              onImport={importPlayers}
+              playerCount={players.length}
+            />
+          </div>
+        )}
+
+        {/* Formulário para Adicionar Jogador */}
+        {(isDevMode || players.length === 0) && (
+          <div className="mb-8">
+            <PlayerForm onAddPlayer={addPlayer} />
+          </div>
+        )}
+
+        {/* Editor de Jogadores (apenas dev mode) */}
+        {isDevMode && players.length > 0 && (
+          <div className="mb-8">
+            <PlayerEditor
+              players={players}
+              onUpdatePlayer={updatePlayer}
+              onDeletePlayer={deletePlayer}
+            />
+          </div>
+        )}
+
         {/* Times Gerados */}
         {generatedTeams && (
           <div className="mb-8">
@@ -219,45 +281,70 @@ const TeamGenerator = () => {
         )}
 
         {/* Lista de Jogadores */}
-        <Card className="bg-gradient-card border-border/50 shadow-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">
-              Todos os Jogadores ({allPlayers.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-              {allPlayers.map((player) => {
-                const isSelected = selectedPlayers.find(p => p.id === player.id);
-                return (
-                  <div
-                    key={player.id}
-                    onClick={() => handlePlayerToggle(player)}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
-                      isSelected
-                        ? "bg-primary/20 border-primary shadow-glow"
-                        : "bg-accent/30 border-border hover:bg-accent/50 hover:border-primary/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-foreground">{player.realName}</h3>
-                      <Badge className={`${getRankColor(player.rank)} text-white text-xs`}>
-                        {player.rank} {player.tier}
-                      </Badge>
+        {players.length > 0 && (
+          <Card className="bg-gradient-card border-border/50 shadow-card">
+            <CardHeader>
+              <CardTitle className="text-foreground">
+                Todos os Jogadores ({players.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                {players.map((player) => {
+                  const isSelected = selectedPlayers.find(p => p.id === player.id);
+                  return (
+                    <div
+                      key={player.id}
+                      onClick={() => handlePlayerToggle(player)}
+                      className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 ${
+                        isSelected
+                          ? "bg-primary/20 border-primary shadow-glow"
+                          : "bg-accent/30 border-border hover:bg-accent/50 hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium text-foreground">{player.realName}</h3>
+                        <Badge className={`${getRankColor(player.rank)} text-white text-xs`}>
+                          {player.rank} {player.tier}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {player.lolName} • {player.mainChampion}
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-primary font-medium">KDA: {player.kda}</span>
+                        <span className="text-lol-win">WR: {player.winRate}%</span>
+                      </div>
                     </div>
-                    <div className="text-sm text-muted-foreground mb-2">
-                      {player.lolName} • {player.mainChampion}
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-primary font-medium">KDA: {player.kda}</span>
-                      <span className="text-lol-win">WR: {player.winRate}%</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Mensagem quando não há jogadores */}
+        {players.length === 0 && (
+          <Card className="bg-gradient-card border-border/50 shadow-card text-center">
+            <CardContent className="py-12">
+              <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Nenhum jogador cadastrado
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Adicione jogadores usando o formulário acima para começar a gerar times.
+              </p>
+              <Button
+                onClick={() => setShowDevControls(true)}
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Abrir Configurações
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

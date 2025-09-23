@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, TrendingDown, Users } from "lucide-react";
-import { allPlayers } from "@/data/mockPlayers";
 import { Player } from "@/types/Player";
+import { usePlayerManager } from "@/hooks/usePlayerManager";
 
 const Dashboard = () => {
+  const { players } = usePlayerManager();
+  
   // Organizar os dados
-  const sortedByWinRate = [...allPlayers].sort((a, b) => b.winRate - a.winRate);
-  const sortedByKDA = [...allPlayers].sort((a, b) => b.kda - a.kda);
-  const sortedByWins = [...allPlayers].sort((a, b) => b.wins - a.wins);
-  const sortedByLosses = [...allPlayers].sort((a, b) => b.losses - a.losses);
+  const sortedByWinRate = [...players].sort((a, b) => b.winRate - a.winRate);
+  const sortedByKDA = [...players].sort((a, b) => b.kda - a.kda);
+  const sortedByWins = [...players].sort((a, b) => b.wins - a.wins);
+  const sortedByLosses = [...players].sort((a, b) => b.losses - a.losses);
   
   const top5Winners = sortedByWinRate.slice(0, 5);
   const top5KDA = sortedByKDA.slice(0, 5);
@@ -75,7 +77,7 @@ const Dashboard = () => {
             Dashboard dos Invocadores
           </h1>
           <p className="text-muted-foreground text-lg">
-            Estatísticas completas dos {allPlayers.length} jogadores do grupo
+            Estatísticas completas dos {players.length} jogadores do grupo
           </p>
         </div>
 
@@ -89,7 +91,7 @@ const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{allPlayers.length}</div>
+              <div className="text-2xl font-bold text-primary">{players.length}</div>
             </CardContent>
           </Card>
           
@@ -102,7 +104,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-lol-win">
-                {Math.round(allPlayers.reduce((acc, p) => acc + p.wins, 0) / allPlayers.length)}
+                {Math.round(players.reduce((acc, p) => acc + p.wins, 0) / players.length)}
               </div>
             </CardContent>
           </Card>
@@ -116,7 +118,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                {(allPlayers.reduce((acc, p) => acc + p.kda, 0) / allPlayers.length).toFixed(1)}
+                {(players.reduce((acc, p) => acc + p.kda, 0) / players.length).toFixed(1)}
               </div>
             </CardContent>
           </Card>
@@ -130,7 +132,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">
-                {(allPlayers.reduce((acc, p) => acc + p.winRate, 0) / allPlayers.length).toFixed(1)}%
+                {(players.reduce((acc, p) => acc + p.winRate, 0) / players.length).toFixed(1)}%
               </div>
             </CardContent>
           </Card>
