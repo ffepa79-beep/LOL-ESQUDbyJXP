@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      players: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          kda: number
+          lol_name: string
+          losses: number
+          main_champion: string
+          rank: string
+          real_name: string
+          tier: string
+          updated_at: string
+          updated_by: string | null
+          win_rate: number
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kda?: number
+          lol_name: string
+          losses?: number
+          main_champion: string
+          rank: string
+          real_name: string
+          tier: string
+          updated_at?: string
+          updated_by?: string | null
+          win_rate?: number
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kda?: number
+          lol_name?: string
+          losses?: number
+          main_champion?: string
+          rank?: string
+          real_name?: string
+          tier?: string
+          updated_at?: string
+          updated_by?: string | null
+          win_rate?: number
+          wins?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
