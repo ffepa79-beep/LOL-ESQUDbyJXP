@@ -4,6 +4,9 @@ export interface Player {
   lolName: string;
   mainChampion: string;
   kda: number;
+  kills: number;
+  deaths: number;
+  assists: number;
   wins: number;
   losses: number;
   winRate: number;

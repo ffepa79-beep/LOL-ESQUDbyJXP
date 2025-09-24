@@ -49,11 +49,14 @@ export const useSupabasePlayerManager = () => {
           rank: player.rank,
           tier: player.tier,
           kda: parseFloat(player.kda.toString()),
+          kills: player.kills || 0,
+          deaths: player.deaths || 1,
+          assists: player.assists || 0,
           wins: player.wins,
           losses: player.losses,
           winRate: parseFloat(player.win_rate.toString()),
           gamesPlayed: player.wins + player.losses,
-          lp: 0
+          lp: player.league_points || 0
         })) || [];
 
         setPlayers(formattedPlayers);
@@ -71,6 +74,9 @@ export const useSupabasePlayerManager = () => {
           rank: player.rank,
           tier: player.tier,
           kda: parseFloat(player.kda.toString()),
+          kills: 0, // Public function doesn't include kills/deaths/assists
+          deaths: 1,
+          assists: 0,
           wins: player.wins,
           losses: player.losses,
           winRate: parseFloat(player.win_rate.toString()),
@@ -129,7 +135,9 @@ export const useSupabasePlayerManager = () => {
           main_champion: player.mainChampion,
           rank: player.rank,
           tier: player.tier,
-          kda: player.kda,
+          kills: player.kills || 0,
+          deaths: player.deaths || 1,
+          assists: player.assists || 0,
           wins: player.wins,
           losses: player.losses,
           win_rate: winRate
@@ -152,7 +160,9 @@ export const useSupabasePlayerManager = () => {
       if (updates.mainChampion) updateData.main_champion = updates.mainChampion;
       if (updates.rank) updateData.rank = updates.rank;
       if (updates.tier) updateData.tier = updates.tier;
-      if (updates.kda !== undefined) updateData.kda = updates.kda;
+      if (updates.kills !== undefined) updateData.kills = updates.kills;
+      if (updates.deaths !== undefined) updateData.deaths = updates.deaths;
+      if (updates.assists !== undefined) updateData.assists = updates.assists;
       if (updates.wins !== undefined) updateData.wins = updates.wins;
       if (updates.losses !== undefined) updateData.losses = updates.losses;
 

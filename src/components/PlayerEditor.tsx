@@ -159,16 +159,38 @@ const PlayerEditor = ({ players, onUpdatePlayer, onDeletePlayer }: PlayerEditorP
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                     <div>
-                      <Label htmlFor="kda">KDA</Label>
+                      <Label htmlFor="kills">Kills</Label>
                       <Input
-                        id="kda"
+                        id="kills"
                         type="number"
-                        step="0.1"
-                        value={editForm.kda || ""}
-                        onChange={(e) => setEditForm({ ...editForm, kda: parseFloat(e.target.value) || 0 })}
-                        placeholder="KDA"
+                        min="0"
+                        value={editForm.kills || ""}
+                        onChange={(e) => setEditForm({ ...editForm, kills: parseInt(e.target.value) || 0 })}
+                        placeholder="Kills"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="deaths">Deaths</Label>
+                      <Input
+                        id="deaths"
+                        type="number"
+                        min="1"
+                        value={editForm.deaths || ""}
+                        onChange={(e) => setEditForm({ ...editForm, deaths: parseInt(e.target.value) || 1 })}
+                        placeholder="Deaths"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="assists">Assists</Label>
+                      <Input
+                        id="assists"
+                        type="number"
+                        min="0"
+                        value={editForm.assists || ""}
+                        onChange={(e) => setEditForm({ ...editForm, assists: parseInt(e.target.value) || 0 })}
+                        placeholder="Assists"
                       />
                     </div>
                     <div>
@@ -229,6 +251,7 @@ const PlayerEditor = ({ players, onUpdatePlayer, onDeletePlayer }: PlayerEditorP
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <span>{player.mainChampion}</span>
                       <span>KDA: {player.kda}</span>
+                      <span>{player.kills}K/{player.deaths}D/{player.assists}A</span>
                       <span>{player.wins}V/{player.losses}D</span>
                       <span>WR: {player.winRate}%</span>
                       <span>{player.lp} LP</span>

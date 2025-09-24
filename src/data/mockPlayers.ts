@@ -8,6 +8,9 @@ export const mockPlayers: Player[] = [
     lolName: "DragonSlayer",
     mainChampion: "Yasuo",
     kda: 2.8,
+    kills: 8,
+    deaths: 3,
+    assists: 5,
     wins: 145,
     losses: 98,
     winRate: 59.7,
@@ -23,6 +26,9 @@ export const mockPlayers: Player[] = [
     lolName: "ShadowQueen",
     mainChampion: "Jinx",
     kda: 3.2,
+    kills: 9,
+    deaths: 3,
+    assists: 7,
     wins: 167,
     losses: 89,
     winRate: 65.2,
@@ -38,6 +44,9 @@ export const mockPlayers: Player[] = [
     lolName: "IronFist",
     mainChampion: "Darius",
     kda: 2.1,
+    kills: 6,
+    deaths: 4,
+    assists: 4,
     wins: 134,
     losses: 112,
     winRate: 54.5,
@@ -53,6 +62,9 @@ export const mockPlayers: Player[] = [
     lolName: "MysticMage",
     mainChampion: "Ahri",
     kda: 2.9,
+    kills: 7,
+    deaths: 3,
+    assists: 6,
     wins: 156,
     losses: 94,
     winRate: 62.4,
@@ -68,6 +80,9 @@ export const mockPlayers: Player[] = [
     lolName: "ThunderStorm",
     mainChampion: "Thresh",
     kda: 1.8,
+    kills: 3,
+    deaths: 4,
+    assists: 8,
     wins: 145,
     losses: 105,
     winRate: 58.0,
@@ -113,13 +128,20 @@ const additionalPlayers: Player[] = Array.from({ length: 67 }, (_, index) => {
   const wins = Math.floor(Math.random() * 200) + 50;
   const losses = Math.floor(Math.random() * 150) + 30;
   const winRate = (wins / (wins + losses)) * 100;
+  const kills = Math.floor(Math.random() * 10) + 3;
+  const deaths = Math.floor(Math.random() * 5) + 1;
+  const assists = Math.floor(Math.random() * 12) + 2;
+  const kda = (kills + assists) / deaths;
   
   return {
     id: (index + 6).toString(),
     realName: names[index % names.length] + " " + names[(index + 1) % names.length],
     lolName: lolNames[index % lolNames.length] + (index > 23 ? (index - 23) : ""),
     mainChampion: champions[index % champions.length],
-    kda: Math.round((Math.random() * 3 + 0.5) * 10) / 10,
+    kda: Math.round(kda * 10) / 10,
+    kills,
+    deaths,
+    assists,
     wins,
     losses,
     winRate: Math.round(winRate * 10) / 10,

@@ -19,7 +19,9 @@ const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
     mainChampion: "",
     rank: "Iron",
     tier: "IV",
-    kda: 1.0,
+    kills: 0,
+    deaths: 1,
+    assists: 0,
     wins: 0,
     losses: 0,
     lp: 0,
@@ -45,8 +47,10 @@ const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
     const total = form.wins + form.losses;
     const winRate = total > 0 ? Math.round((form.wins / total) * 100 * 10) / 10 : 0;
 
+    // KDA será calculado automaticamente pelo trigger do banco de dados
     const newPlayer: Omit<Player, "id"> = {
       ...form,
+      kda: 0, // Será calculado pelo trigger
       winRate,
       gamesPlayed: total,
       championImageUrl: `https://ddragon.leagueoflegends.com/cdn/13.24.1/img/champion/${form.mainChampion.replace(/\s/g, "")}.png`
@@ -61,7 +65,9 @@ const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
       mainChampion: "",
       rank: "Iron",
       tier: "IV",
-      kda: 1.0,
+      kills: 0,
+      deaths: 1,
+      assists: 0,
       wins: 0,
       losses: 0,
       lp: 0,
@@ -160,17 +166,38 @@ const PlayerForm = ({ onAddPlayer }: PlayerFormProps) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             <div>
-              <Label htmlFor="kda">KDA</Label>
+              <Label htmlFor="kills">Kills</Label>
               <Input
-                id="kda"
+                id="kills"
                 type="number"
-                step="0.1"
                 min="0"
-                value={form.kda}
-                onChange={(e) => setForm({ ...form, kda: parseFloat(e.target.value) || 0 })}
-                placeholder="1.5"
+                value={form.kills}
+                onChange={(e) => setForm({ ...form, kills: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <Label htmlFor="deaths">Deaths</Label>
+              <Input
+                id="deaths"
+                type="number"
+                min="1"
+                value={form.deaths}
+                onChange={(e) => setForm({ ...form, deaths: parseInt(e.target.value) || 1 })}
+                placeholder="1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="assists">Assists</Label>
+              <Input
+                id="assists"
+                type="number"
+                min="0"
+                value={form.assists}
+                onChange={(e) => setForm({ ...form, assists: parseInt(e.target.value) || 0 })}
+                placeholder="0"
               />
             </div>
             <div>
