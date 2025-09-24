@@ -17,13 +17,16 @@ export type Database = {
       players: {
         Row: {
           account_id: string | null
+          assists: number
           auto_update_enabled: boolean | null
           created_at: string
           created_by: string | null
           current_season_stats: Json | null
+          deaths: number
           division: string | null
           id: string
           kda: number
+          kills: number
           last_updated: string | null
           league_points: number | null
           lol_name: string
@@ -46,13 +49,16 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          assists?: number
           auto_update_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
           current_season_stats?: Json | null
+          deaths?: number
           division?: string | null
           id?: string
           kda?: number
+          kills?: number
           last_updated?: string | null
           league_points?: number | null
           lol_name: string
@@ -75,13 +81,16 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          assists?: number
           auto_update_enabled?: boolean | null
           created_at?: string
           created_by?: string | null
           current_season_stats?: Json | null
+          deaths?: number
           division?: string | null
           id?: string
           kda?: number
+          kills?: number
           last_updated?: string | null
           league_points?: number | null
           lol_name?: string
