@@ -65,7 +65,7 @@ export const useSupabasePlayerManager = () => {
 
         const formattedPlayers: Player[] = data?.map(player => ({
           id: player.id,
-          realName: player.lol_name, // Use LoL name as display name for public
+          realName: player.real_name, // Now real names are visible to all users
           lolName: player.lol_name,
           mainChampion: player.main_champion,
           rank: player.rank,

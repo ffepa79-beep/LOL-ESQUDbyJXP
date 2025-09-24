@@ -16,14 +16,14 @@ const PrivacyNotice = ({ isAuthenticated }: PrivacyNoticeProps) => {
               <div className="flex items-center space-x-2">
                 <Eye className="w-4 h-4 text-primary" />
                 <p className="text-sm text-muted-foreground">
-                  <span className="text-primary font-medium">Modo Desenvolvedor:</span> Você pode ver nomes reais e gerenciar todos os jogadores.
+                  <span className="text-primary font-medium">Modo Desenvolvedor:</span> Você pode gerenciar todos os jogadores e suas informações.
                 </p>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
-                <EyeOff className="w-4 h-4 text-muted-foreground" />
+                <Eye className="w-4 h-4 text-primary" />
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-medium">Modo Público:</span> Nomes reais estão ocultos por privacidade. Faça login como desenvolvedor para acesso completo.
+                  <span className="font-medium">Modo Público:</span> Nomes reais são visíveis para todos. Faça login como desenvolvedor para gerenciar jogadores.
                 </p>
               </div>
             )}

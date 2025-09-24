@@ -119,6 +119,7 @@ export type Database = {
           losses: number
           main_champion: string
           rank: string
+          real_name: string
           tier: string
           win_rate: number
           wins: number
