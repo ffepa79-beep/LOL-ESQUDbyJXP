@@ -225,6 +225,23 @@ const TeamGenerator = () => {
           </CardHeader>
         </Card>
 
+        {/* Times Gerados */}
+        {generatedTeams && (
+          <div className="mb-8">
+            <div className="flex items-center justify-center mb-6">
+              <Swords className="w-8 h-8 text-primary" />
+              <h2 className="text-2xl font-bold text-center mx-4 bg-gradient-gold bg-clip-text text-transparent">
+                TIMES GERADOS
+              </h2>
+              <Swords className="w-8 h-8 text-primary" />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TeamCard team={generatedTeams[0]} color="bg-blue-500" />
+              <TeamCard team={generatedTeams[1]} color="bg-red-500" />
+            </div>
+          </div>
+        )}
+
         {/* Privacy Notice */}
         <PrivacyNotice isAuthenticated={isAuthenticated} />
 
@@ -251,23 +268,6 @@ const TeamGenerator = () => {
               onUpdatePlayer={updatePlayer}
               onDeletePlayer={deletePlayer}
             />
-          </div>
-        )}
-
-        {/* Times Gerados */}
-        {generatedTeams && (
-          <div className="mb-8">
-            <div className="flex items-center justify-center mb-6">
-              <Swords className="w-8 h-8 text-primary" />
-              <h2 className="text-2xl font-bold text-center mx-4 bg-gradient-gold bg-clip-text text-transparent">
-                TIMES GERADOS
-              </h2>
-              <Swords className="w-8 h-8 text-primary" />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TeamCard team={generatedTeams[0]} color="bg-blue-500" />
-              <TeamCard team={generatedTeams[1]} color="bg-red-500" />
-            </div>
           </div>
         )}
 
