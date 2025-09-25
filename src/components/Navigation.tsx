@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "react-router-dom";
-import { Trophy, Users, TrendingUp } from "lucide-react";
+import { Trophy, Users, TrendingUp, Shield } from "lucide-react";
+import { useSupabasePlayerManager } from "@/hooks/useSupabasePlayerManager";
 
 const Navigation = () => {
   const location = useLocation();
+  const { isAuthenticated } = useSupabasePlayerManager();
 
   const navItems = [
     { path: "/", label: "Dashboard", icon: TrendingUp },
     { path: "/generator", label: "Gerador 5v5", icon: Users },
+    ...(isAuthenticated ? [{ path: "/admin", label: "Admin IA", icon: Shield }] : []),
   ];
 
   return (
