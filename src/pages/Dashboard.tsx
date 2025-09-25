@@ -3,9 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, TrendingDown, Users } from "lucide-react";
 import { Player } from "@/types/Player";
 import { useSupabasePlayerManager } from "@/hooks/useSupabasePlayerManager";
+import HallOfFame from "@/components/HallOfFame";
 
 const Dashboard = () => {
-  const { players, loading } = useSupabasePlayerManager();
+  const { players, loading, updatePlayer, isAuthenticated } = useSupabasePlayerManager();
   
   // Organizar os dados
   const sortedByWinRate = [...players].sort((a, b) => b.winRate - a.winRate);
@@ -91,6 +92,13 @@ const Dashboard = () => {
             Estatísticas completas dos {players.length} jogadores do grupo
           </p>
         </div>
+
+        {/* Hall da Fama */}
+        <HallOfFame 
+          players={players} 
+          onUpdatePlayer={updatePlayer}
+          isAuthenticated={isAuthenticated}
+        />
 
         {/* Estatísticas Gerais */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

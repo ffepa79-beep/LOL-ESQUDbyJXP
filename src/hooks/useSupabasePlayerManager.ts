@@ -56,7 +56,8 @@ export const useSupabasePlayerManager = () => {
           losses: player.losses,
           winRate: parseFloat(player.win_rate.toString()),
           gamesPlayed: player.wins + player.losses,
-          lp: player.league_points || 0
+          lp: player.league_points || 0,
+          avatarUrl: player.profile_icon_id ? `https://ddragon.leagueoflegends.com/cdn/14.23.1/img/profileicon/${player.profile_icon_id}.png` : undefined
         })) || [];
 
         setPlayers(formattedPlayers);
@@ -81,7 +82,8 @@ export const useSupabasePlayerManager = () => {
           losses: player.losses,
           winRate: parseFloat(player.win_rate.toString()),
           gamesPlayed: player.wins + player.losses,
-          lp: 0
+          lp: 0,
+          avatarUrl: undefined // Public users don't get avatar info
         })) || [];
 
         setPlayers(formattedPlayers);
@@ -164,7 +166,7 @@ export const useSupabasePlayerManager = () => {
       if (updates.deaths !== undefined) updateData.deaths = updates.deaths;
       if (updates.assists !== undefined) updateData.assists = updates.assists;
       if (updates.wins !== undefined) updateData.wins = updates.wins;
-      if (updates.losses !== undefined) updateData.losses = updates.losses;
+      if (updates.avatarUrl !== undefined) updateData.profile_icon_id = updates.avatarUrl ? parseInt(updates.avatarUrl.split('/').pop()?.split('.')[0] || '0') : null;
 
       // Recalculate win rate
       if (updates.wins !== undefined || updates.losses !== undefined) {
