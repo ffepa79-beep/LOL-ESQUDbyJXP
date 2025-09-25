@@ -19,6 +19,7 @@ export type Database = {
           account_id: string | null
           assists: number
           auto_update_enabled: boolean | null
+          avatar_url: string | null
           created_at: string
           created_by: string | null
           current_season_stats: Json | null
@@ -51,6 +52,7 @@ export type Database = {
           account_id?: string | null
           assists?: number
           auto_update_enabled?: boolean | null
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           current_season_stats?: Json | null
@@ -83,6 +85,7 @@ export type Database = {
           account_id?: string | null
           assists?: number
           auto_update_enabled?: boolean | null
+          avatar_url?: string | null
           created_at?: string
           created_by?: string | null
           current_season_stats?: Json | null
