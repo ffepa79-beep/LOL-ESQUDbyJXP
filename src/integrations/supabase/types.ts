@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      match_analysis: {
+        Row: {
+          analysis_result: Json
+          best_play: Json | null
+          confidence_score: number | null
+          created_at: string
+          file_path: string
+          file_type: string
+          id: string
+          loser_team: string | null
+          player_stats: Json | null
+          updated_at: string
+          user_id: string
+          winner_team: string | null
+        }
+        Insert: {
+          analysis_result?: Json
+          best_play?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          file_path: string
+          file_type: string
+          id?: string
+          loser_team?: string | null
+          player_stats?: Json | null
+          updated_at?: string
+          user_id: string
+          winner_team?: string | null
+        }
+        Update: {
+          analysis_result?: Json
+          best_play?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          file_path?: string
+          file_type?: string
+          id?: string
+          loser_team?: string | null
+          player_stats?: Json | null
+          updated_at?: string
+          user_id?: string
+          winner_team?: string | null
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           account_id: string | null
