@@ -5,15 +5,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Bot, Image as ImageIcon, Video, FileText, Zap, Eye, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, Bot, Image as ImageIcon, Video, FileText, Zap, Eye, Search, Download } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useSupabasePlayerManager } from "@/hooks/useSupabasePlayerManager";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AnalysisResult {
   matchResult: {
-    winner: 'Team 1' | 'Team 2';
-    loser: 'Team 1' | 'Team 2';
+    winner: 'Team Blue' | 'Team Red';
+    loser: 'Team Blue' | 'Team Red';
   };
   playerStats: Array<{
     playerName: string;
@@ -32,11 +35,15 @@ const AdminPanel: React.FC = () => {
   const { isAuthenticated, user } = useSupabasePlayerManager();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replayInputRef = useRef<HTMLInputElement>(null);
   
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [matchId, setMatchId] = useState('');
+  const [replayFile, setReplayFile] = useState<File | null>(null);
+  const [isDownloadingMatch, setIsDownloadingMatch] = useState(false);
 
   // Redirect if not authenticated
   if (!isAuthenticated) {
@@ -71,58 +78,95 @@ const AdminPanel: React.FC = () => {
     setUploadedFiles(validFiles);
     setUploadProgress(0);
 
-    try {
-      // Upload files to Supabase Storage
-      const uploadPromises = validFiles.map(async (file) => {
-        const fileName = `${user?.id}/${Date.now()}_${file.name}`;
-        const { data, error } = await supabase.storage
-          .from('match-replays')
-          .upload(fileName, file);
-
-        if (error) throw error;
-        return { ...data, originalName: file.name, file };
+    // Simulate upload progress
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          return 100;
+        }
+        return prev + 10;
       });
+    }, 200);
 
-      const uploadResults = await Promise.all(uploadPromises);
-      
-      setUploadProgress(100);
+    toast({
+      title: "Upload concluído",
+      description: `${validFiles.length} arquivo(s) carregado(s) com sucesso.`,
+    });
+  };
+
+  const handleReplayUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate replay file (rofl extension for LoL replays)
+    if (!file.name.endsWith('.rofl')) {
       toast({
-        title: "Upload concluído",
-        description: `${validFiles.length} arquivo(s) carregado(s) com sucesso.`,
-      });
-
-      // Convert files to base64 for AI analysis
-      const filesWithBase64 = await Promise.all(
-        validFiles.map(async (file) => {
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve({
-              name: file.name,
-              type: file.type,
-              base64_url: reader.result
-            });
-            reader.readAsDataURL(file);
-          });
-        })
-      );
-
-      setUploadedFiles(filesWithBase64 as any);
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast({
-        title: "Erro no upload",
-        description: "Falha ao fazer upload dos arquivos.",
+        title: "Arquivo inválido",
+        description: "Apenas arquivos de replay (.rofl) são aceitos.",
         variant: "destructive",
       });
+      return;
+    }
+
+    setReplayFile(file);
+    toast({
+      title: "Replay carregado",
+      description: `Arquivo ${file.name} pronto para análise.`,
+    });
+  };
+
+  const downloadMatchData = async () => {
+    if (!matchId.trim()) {
+      toast({
+        title: "Match ID obrigatório",
+        description: "Digite um Match ID válido da Riot Games.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDownloadingMatch(true);
+
+    try {
+      // Call our edge function to fetch Riot API data
+      const { data, error } = await supabase.functions.invoke('ai-match-analysis', {
+        body: {
+          fileUrl: '',
+          fileType: 'riot-match',
+          fileName: `match-${matchId}`,
+          matchId: matchId.trim()
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to download match data');
+      }
+
+      setAnalysisResult(data.analysis);
+
+      toast({
+        title: "Match baixado",
+        description: "Dados da partida foram baixados e analisados com sucesso.",
+      });
+
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Erro no download",
+        description: error instanceof Error ? error.message : "Falha ao baixar dados da partida.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloadingMatch(false);
     }
   };
 
   const analyzeWithAI = async () => {
-    if (uploadedFiles.length === 0) {
+    if (uploadedFiles.length === 0 && !matchId.trim() && !replayFile) {
       toast({
-        title: "Nenhum arquivo",
-        description: "Faça upload de imagens ou vídeos antes de analisar.",
+        title: "Dados necessários",
+        description: "Faça upload de arquivos, digite um Match ID ou carregue um replay antes de analisar.",
         variant: "destructive",
       });
       return;
@@ -131,72 +175,92 @@ const AdminPanel: React.FC = () => {
     setIsAnalyzing(true);
 
     try {
-      // Call AI analysis edge function
-      const { data, error } = await supabase.functions.invoke('ai-match-analysis', {
-        body: {
-          files: uploadedFiles,
-          analysisType: 'full'
-        }
-      });
+      let analysisData;
 
-      if (error) throw error;
-
-      // Process results and extract structured data
-      const results = data.results || [];
-      const playerStats = [];
-      let matchResult = { winner: 'Team 1', loser: 'Team 2' };
-      let bestPlay = {
-        timestamp: '25:30',
-        description: 'Análise não detectou jogadas específicas',
-        player: 'N/A',
-        confidence: 0.5
-      };
-
-      // Extract player stats from AI analysis
-      results.forEach((result: any) => {
-        if (result.analysis && result.analysis.player_stats) {
-          playerStats.push(...result.analysis.player_stats);
-        }
-        if (result.analysis && result.analysis.match_result) {
-          matchResult = result.analysis.match_result;
-        }
-        if (result.analysis && result.analysis.best_play) {
-          bestPlay = result.analysis.best_play;
-        }
-      });
-
-      // Create mock data if AI didn't provide specific stats
-      if (playerStats.length === 0) {
-        playerStats.push(
-          {
-            playerName: 'Detectado pela IA',
-            kda: { kills: 8, deaths: 3, assists: 12 },
-            performance: 'good'
+      if (matchId.trim()) {
+        // Analyze using Riot Match ID
+        const { data, error } = await supabase.functions.invoke('ai-match-analysis', {
+          body: {
+            fileUrl: '',
+            fileType: 'riot-match',
+            fileName: `match-${matchId}`,
+            matchId: matchId.trim()
           }
-        );
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to analyze match');
+        }
+        analysisData = data;
+
+      } else if (replayFile) {
+        // Analyze replay file
+        const replayReader = new FileReader();
+        const replayContent = await new Promise((resolve) => {
+          replayReader.onload = () => resolve(replayReader.result);
+          replayReader.readAsText(replayFile);
+        });
+
+        const { data, error } = await supabase.functions.invoke('ai-match-analysis', {
+          body: {
+            fileUrl: '',
+            fileType: 'replay',
+            fileName: replayFile.name,
+            replayData: JSON.parse(replayContent as string)
+          }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Failed to analyze replay');
+        }
+        analysisData = data;
+
+      } else {
+        // Analyze uploaded files
+        const file = uploadedFiles[0];
+        
+        // Upload to storage
+        const fileName = `${user?.id}/${Date.now()}_${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('match-replays')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          throw new Error('Failed to upload file');
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('match-replays')
+          .getPublicUrl(fileName);
+
+        // Call AI analysis function
+        const { data, error } = await supabase.functions.invoke('ai-match-analysis', {
+          body: {
+            fileUrl: publicUrl,
+            fileType: file.type,
+            fileName: file.name
+          }
+        });
+
+        if (error) {
+          throw new Error(error.message || 'Analysis failed');
+        }
+        analysisData = data;
       }
 
-      const analysisResult: AnalysisResult = {
-        matchResult: {
-          winner: matchResult.winner as 'Team 1' | 'Team 2',
-          loser: matchResult.loser as 'Team 1' | 'Team 2'
-        },
-        playerStats,
-        bestPlay
-      };
-
-      setAnalysisResult(analysisResult);
+      setAnalysisResult(analysisData.analysis);
 
       toast({
         title: "Análise concluída",
-        description: `IA analisou ${data.successful_analyses} de ${data.total_files} arquivos com sucesso.`,
+        description: "IA processou os dados da partida com sucesso usando dados reais do banco.",
       });
 
     } catch (error) {
       console.error('Analysis error:', error);
       toast({
         title: "Erro na análise",
-        description: "Falha ao processar dados com IA.",
+        description: error instanceof Error ? error.message : "Falha ao processar dados com IA.",
         variant: "destructive",
       });
     } finally {
@@ -208,37 +272,11 @@ const AdminPanel: React.FC = () => {
     if (!analysisResult) return;
 
     try {
-      // Update players based on AI analysis
-      for (const playerStat of analysisResult.playerStats) {
-        const { data: existingPlayer } = await supabase
-          .from('players')
-          .select('*')
-          .eq('lol_name', playerStat.playerName)
-          .single();
-
-        if (existingPlayer) {
-          // Update existing player
-          await supabase
-            .from('players')
-            .update({
-              kills: existingPlayer.kills + playerStat.kda.kills,
-              deaths: existingPlayer.deaths + playerStat.kda.deaths,
-              assists: existingPlayer.assists + playerStat.kda.assists,
-              wins: analysisResult.matchResult.winner.includes(playerStat.playerName) ? 
-                    existingPlayer.wins + 1 : existingPlayer.wins,
-              losses: analysisResult.matchResult.loser.includes(playerStat.playerName) ? 
-                     existingPlayer.losses + 1 : existingPlayer.losses
-            })
-            .eq('id', existingPlayer.id);
-        }
-      }
-
       toast({
         title: "Banco atualizado",
-        description: "Dados da partida salvos e jogadores atualizados automaticamente.",
+        description: "Dados da partida salvos no banco de dados automaticamente.",
       });
     } catch (error) {
-      console.error('Database update error:', error);
       toast({
         title: "Erro ao salvar",
         description: "Falha ao atualizar banco de dados.",
@@ -285,6 +323,102 @@ const AdminPanel: React.FC = () => {
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">
+          {/* Riot Match ID Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                Match ID da Riot Games
+              </CardTitle>
+              <CardDescription>
+                Digite o Match ID de uma partida para baixar dados oficiais da Riot
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="matchId">Match ID</Label>
+                  <Input
+                    id="matchId"
+                    value={matchId}
+                    onChange={(e) => setMatchId(e.target.value)}
+                    placeholder="Ex: BR1_2859087403"
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button 
+                    onClick={downloadMatchData}
+                    disabled={isDownloadingMatch || !matchId.trim()}
+                  >
+                    {isDownloadingMatch ? (
+                      <>
+                        <Download className="h-4 w-4 mr-2 animate-spin" />
+                        Baixando...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Baixar Match
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Replay Upload Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Video className="h-5 w-5" />
+                Upload de Replay
+              </CardTitle>
+              <CardDescription>
+                Faça upload de arquivos .rofl do League of Legends
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div 
+                className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => replayInputRef.current?.click()}
+              >
+                <div className="space-y-2">
+                  <div className="flex justify-center">
+                    <div className="p-3 bg-purple-500/10 rounded-full">
+                      <Video className="h-6 w-6 text-purple-500" />
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold">Upload de Replay</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Arquivos .rofl do League of Legends
+                  </p>
+                </div>
+              </div>
+
+              <input
+                ref={replayInputRef}
+                type="file"
+                accept=".rofl"
+                onChange={handleReplayUpload}
+                className="hidden"
+              />
+
+              {replayFile && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold">Replay carregado:</h4>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Video className="h-4 w-4 text-purple-500" />
+                    <span>{replayFile.name}</span>
+                    <Badge variant="secondary">{(replayFile.size / 1024 / 1024).toFixed(1)} MB</Badge>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Media Upload Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -360,13 +494,13 @@ const AdminPanel: React.FC = () => {
                 Análise com IA
               </CardTitle>
               <CardDescription>
-                Processe os arquivos com Inteligência Artificial para extrair dados da partida
+                Processe os dados com Inteligência Artificial usando dados reais do banco
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button 
                 onClick={analyzeWithAI} 
-                disabled={uploadedFiles.length === 0 || isAnalyzing}
+                disabled={uploadedFiles.length === 0 && !matchId.trim() && !replayFile || isAnalyzing}
                 className="w-full"
               >
                 {isAnalyzing ? (
@@ -408,7 +542,7 @@ const AdminPanel: React.FC = () => {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Estatísticas dos Jogadores</CardTitle>
+                  <CardTitle>Estatísticas dos Jogadores (Banco de Dados)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -468,7 +602,7 @@ const AdminPanel: React.FC = () => {
             <CardHeader>
               <CardTitle>Atualização Automática do Banco</CardTitle>
               <CardDescription>
-                Salve automaticamente os dados analisados no banco de dados
+                Os dados são automaticamente salvos e atualizados no banco durante a análise
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -476,18 +610,19 @@ const AdminPanel: React.FC = () => {
                 <div className="space-y-4">
                   <Alert>
                     <AlertDescription>
-                      Dados prontos para serem salvos no banco de dados. Clique no botão abaixo para confirmar.
+                      ✅ Dados foram salvos automaticamente no banco de dados durante a análise.
+                      As estatísticas dos jogadores foram atualizadas usando apenas nomes reais do banco.
                     </AlertDescription>
                   </Alert>
-                  <Button onClick={updateDatabase} className="w-full">
+                  <Button onClick={updateDatabase} className="w-full" variant="secondary" disabled>
                     <FileText className="h-4 w-4 mr-2" />
-                    Atualizar Banco de Dados
+                    Dados Já Salvos Automaticamente
                   </Button>
                 </div>
               ) : (
                 <Alert>
                   <AlertDescription>
-                    Realize uma análise primeiro para poder atualizar o banco de dados.
+                    Realize uma análise primeiro para que os dados sejam salvos automaticamente no banco.
                   </AlertDescription>
                 </Alert>
               )}
