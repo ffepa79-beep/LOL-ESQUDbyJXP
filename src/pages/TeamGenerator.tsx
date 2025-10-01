@@ -107,6 +107,43 @@ const TeamGenerator = () => {
     toast.success("Times aleatórios gerados!");
   };
 
+  const randomizeTeamsWithLanes = () => {
+    if (selectedPlayers.length !== 10) {
+      toast.error("Selecione exatamente 10 jogadores!");
+      return;
+    }
+
+    const lanes = ["Top", "Jungle", "Mid", "ADC", "Suporte"];
+    const shuffled = [...selectedPlayers].sort(() => Math.random() - 0.5);
+    
+    // Atribui lanes para o time 1
+    const team1 = shuffled.slice(0, 5).map((player, index) => ({
+      ...player,
+      lane: lanes[index]
+    }));
+    
+    // Atribui lanes para o time 2
+    const team2 = shuffled.slice(5, 10).map((player, index) => ({
+      ...player,
+      lane: lanes[index]
+    }));
+
+    const createTeam = (players: Player[], name: string): Team => ({
+      id: Math.random().toString(),
+      name,
+      players,
+      averageKda: players.reduce((acc, p) => acc + p.kda, 0) / players.length,
+      totalWins: players.reduce((acc, p) => acc + p.wins, 0),
+      averageWinRate: players.reduce((acc, p) => acc + p.winRate, 0) / players.length,
+    });
+
+    const teamA = createTeam(team1, "Time Azul");
+    const teamB = createTeam(team2, "Time Vermelho");
+
+    setGeneratedTeams([teamA, teamB]);
+    toast.success("Times aleatórios com lanes gerados!");
+  };
+
   const getRankColor = (rank: string) => {
     switch (rank.toLowerCase()) {
       case "iron": return "bg-gray-600";
@@ -140,9 +177,16 @@ const TeamGenerator = () => {
       <CardContent className="relative space-y-3">
         {team.players.map((player) => (
           <div key={player.id} className="flex items-center justify-between p-3 bg-accent/30 rounded-lg">
-            <div>
-              <div className="font-medium text-foreground">{player.realName}</div>
-              <div className="text-sm text-muted-foreground">{player.lolName}</div>
+            <div className="flex items-center space-x-3">
+              {player.lane && (
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-semibold min-w-[70px] justify-center">
+                  {player.lane}
+                </Badge>
+              )}
+              <div>
+                <div className="font-medium text-foreground">{player.realName}</div>
+                <div className="text-sm text-muted-foreground">{player.lolName}</div>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Badge className={`${getRankColor(player.rank)} text-white text-xs`}>
@@ -219,6 +263,15 @@ const TeamGenerator = () => {
                 >
                   <Shuffle className="w-4 h-4 mr-2" />
                   Times Aleatórios
+                </Button>
+                <Button
+                  onClick={randomizeTeamsWithLanes}
+                  disabled={selectedPlayers.length !== 10}
+                  variant="outline"
+                  className="border-accent text-accent-foreground hover:bg-accent/20"
+                >
+                  <Shuffle className="w-4 h-4 mr-2" />
+                  Aleatório com Lanes
                 </Button>
               </div>
             </CardTitle>

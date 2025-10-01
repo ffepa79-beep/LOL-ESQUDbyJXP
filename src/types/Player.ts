@@ -16,6 +16,7 @@ export interface Player {
   lp: number;
   avatarUrl?: string;
   championImageUrl?: string;
+  lane?: string;
 }
 
 export interface Team {
